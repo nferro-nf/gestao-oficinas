@@ -1,0 +1,119 @@
+[
+    {
+        "matricula": "AIJ-123 MP",
+        "tipo": "Toyota",
+        "oficina": "Beira",
+        "manutencoes": [
+            {
+                "data": "10/10/2026",
+                "descricao": "Problema de motor de arranque",
+                "custo": 17600.0
+            },
+            {
+                "data": "10/10/2026",
+                "descricao": "Problema de motor de arranque",
+                "custo": 17600.0
+            }
+        ]
+    },
+    {
+        "matricula": "ABG-1217 MB",
+        "tipo": "IZUZU",
+        "oficina": "Nacala",
+        "manutencoes": []
+    },
+    {
+        "matricula": "AHJ-768 MP",
+        "tipo": "Nissan",
+        "modelo": "SUV",
+        "oficina": "Maputo",
+        "manutencoes": []
+    },
+    {
+        "matricula": "AJU-479 MC",
+        "tipo": "Toyota",
+        "modelo": "Hilux",
+        "oficina": "Nacala",
+        "manutencoes": []
+    },
+    {
+        "matricula": "AIM 653 MP",
+        "tipo": "Izuzu",
+        "modelo": "D-Max",
+        "oficina": "Maputo",
+        "manutencoes": []
+    },
+    {
+        "matricula": "AIM 652 MP",
+        "tipo": "Izuzu",
+        "modelo": "D-Max",
+        "oficina": "Maputo",
+        "manutencoes": [
+            {
+                "data": "11/10/2026",
+                "descricao": "Corta Corrente, problema com alternador",
+                "custo": 14400.0
+            }
+        ]
+    },
+    {
+        "matricula": "AAT 730 SF",
+        "modelo": "Volvo",
+        "oficina": "Maputo",
+        "foto": "fotos/AAT 730 SF.jpg",
+        "status": "Ativo",
+        "manutencoes": []
+    },
+    {
+        "matricula": "ALR 236 MC",
+        "modelo": "Freightliner Argosy",
+        "oficina": "Maputo",
+        "foto": "fotos/ALR 236 MC.jpg",
+        "status": "Ativo",
+        "manutencoes": [
+            {
+                "descricao": "Repara\u00e7\u00e3o do motor",
+                "custo": 32000.0
+            }
+        ]
+    },
+    {
+        "matricula": "ALR 236 MC",
+        "modelo": "Freightliner Argosy",
+        "oficina": "Maputo",
+        "foto": "fotos/ALR 236 MC.jpg",
+        "status": "Ativo",
+        "manutencoes": [
+            {
+                "descricao": "Repara\u00e7\u00e3o do motor",
+                "custo": 32000.0
+            }
+        ]
+    },
+    {
+        "matricula": "ALR 236 MC",
+        "modelo": "Freightliner Argosy",
+        "oficina": "Maputo",
+        "foto": "fotos/ALR 236 MC.jpg",
+        "status": "Ativo",
+        "manutencoes": [
+            {
+                "descricao": "Repara\u00e7\u00e3o do motor",
+                "custo": 32000.0
+            }
+        ]
+    },
+    {
+        "matricula": "ALR 236 MC",
+        "modelo": "Freightliner Argosy",
+        "oficina": "Maputo",
+        "foto": "fotos/ALR 236 MC.jpg",
+        "status": "Ativo",
+        "manutencoes": [
+            {
+                "descricao": "Repara\u00e7\u00e3o do motor",
+                "custo": 32000.0
+            }
+        ]
+    }
+]
