@@ -15,40 +15,58 @@ def get_ws():
         ws = sh.worksheet("ordens")
     except:
         ws = sh.add_worksheet("ordens", 2000, 30)
-    headers = ["id","ordem","nome_oficina","cliente","tipo_equipamento","marca","modelo","ano","data_entrada","tempo_parado_dias","previsao_saida","sem_previsao","status","custo_total","telefone","servico"]
-    if not ws.row_values(1):
-        ws.append_row(headers)
+    HEADERS = ["id","ordem","nome_oficina","cliente","tipo_equipamento","marca","modelo","ano","data_entrada","tempo_parado_dias","previsao_saida","sem_previsao","status","custo_total","telefone","servico"]
+    vals = ws.get_all_values()
+    if not vals:
+        ws.append_row(HEADERS)
+    else:
+        # se header antigo, corrige
+        if vals[0]!= HEADERS:
+            ws.update('A1', [HEADERS])
     return ws
 
 def load_df():
     ws = get_ws()
-    df = pd.DataFrame(ws.get_all_records())
+    records = ws.get_all_records()
+    df = pd.DataFrame(records)
+    # garante colunas
+    for col in ["id","ordem","nome_oficina","cliente","tipo_equipamento","marca","modelo","ano","data_entrada","tempo_parado_dias","previsao_saida","sem_previsao","status","custo_total","telefone","servico"]:
+        if col not in df.columns:
+            df[col] = ""
     return df, ws
 
 def calc_tempo(data_str):
     try:
-        dt = datetime.strptime(data_str, "%d/%m/%Y")
+        dt = datetime.strptime(str(data_str), "%d/%m/%Y")
         return (datetime.now() - dt).days
     except:
         return 0
 
 st.title("🔧 Gestão de Oficinas - Sistema Completo")
+df, ws = load_df()
+st.success(f"✅ Conectado Sheets - {len(df)} ordens")
 
-try:
-    df, ws = load_df()
-    st.success(f"✅ Conectado - {len(df)} ordens na nuvem")
-except Exception as e:
-    st.error(f"Erro: {e}"); st.stop()
-
-# METRICAS
+# METRICAS SEGURAS
 c1,c2,c3,c4 = st.columns(4)
 c1.metric("Total Ordens", len(df))
-c2.metric("Sem Previsão", len(df[df['sem_previsao'].astype(str).str.contains('SIM', na=False)]) if not df.empty else 0)
-c3.metric("Em Reparo", len(df[df['status'].astype(str).str.contains('reparo', case=False, na=False)]) if not df.empty else 0)
-if not df.empty:
+if not df.empty and 'sem_previsao' in df.columns:
+    c2.metric("Sem Previsão", len(df[df['sem_previsao'].astype(str).str.upper()=="SIM"]))
+else:
+    c2.metric("Sem Previsão", 0)
+
+if not df.empty and 'status' in df.columns:
+    c3.metric("Em Reparo", len(df[df['status'].astype(str).str.contains('reparo', case=False, na=False)]))
+else:
+    c3.metric("Em Reparo", 0)
+
+if not df.empty and 'custo_total' in df.columns:
     try:
-        c4.metric("Faturamento", f"{pd.to_numeric(df['custo_total'], errors='coerce').sum():,.0f} MT")
-    except: pass
+        total = pd.to_numeric(df['custo_total'], errors='coerce').fillna(0).sum()
+        c4.metric("Faturamento", f"{total:,.0f} MT")
+    except:
+        c4.metric("Faturamento", "0 MT")
+else:
+    c4.metric("Faturamento", "0 MT")
 
 tab1, tab2, tab3 = st.tabs(["📋 Ordens", "➕ Nova Ordem", "📊 Dashboard"])
 
@@ -73,29 +91,27 @@ with tab2:
             custo = st.number_input("Custo MT", 0.0, step=100.0)
         servico = st.text_area("Serviço / Defeito *")
         if st.form_submit_button("💾 SALVAR NO SHEETS", use_container_width=True, type="primary"):
-            linha = [str(uuid.uuid4())[:8], ordem, nome_oficina, cliente, tipo_equip, marca, modelo, ano, data_entrada.strftime("%d/%m/%Y"), (date.today()-data_entrada).days, "" if sem_previsao else previsao_saida.strftime("%d/%m/%Y"), "SIM" if sem_previsao else "NÃO", status, custo, telefone, servico]
-            ws.append_row(linha)
-            st.success(f"Ordem {ordem} salva!"); st.balloons()
-            st.cache_resource.clear()
+            if not ordem or not cliente:
+                st.warning("Preencha Nº Ordem e Cliente")
+            else:
+                linha = [str(uuid.uuid4())[:8], ordem, nome_oficina, cliente, tipo_equip, marca, modelo, ano, data_entrada.strftime("%d/%m/%Y"), (date.today()-data_entrada).days, "" if sem_previsao else previsao_saida.strftime("%d/%m/%Y"), "SIM" if sem_previsao else "NÃO", status, custo, telefone, servico]
+                ws.append_row(linha)
+                st.success(f"Ordem {ordem} salva!"); st.balloons()
+                st.cache_resource.clear()
 
 with tab1:
     if df.empty:
-        st.info("Nenhuma ordem")
+        st.info("Nenhuma ordem ainda")
     else:
-        f1,f2 = st.columns(2)
-        filtro_oficina = f1.selectbox("Filtrar Oficina", ["Todas"] + sorted(df['nome_oficina'].dropna().astype(str).unique().tolist()) if 'nome_oficina' in df.columns else ["Todas"])
-        filtro_status = f2.selectbox("Filtrar Status", ["Todos"] + sorted(df['status'].dropna().astype(str).unique().tolist()) if 'status' in df.columns else ["Todos"])
-        busca = st.text_input("Buscar")
+        busca = st.text_input("Buscar (cliente, ordem, oficina)")
         df_view = df.copy()
-        if filtro_oficina != "Todas": df_view = df_view[df_view['nome_oficina'].astype(str)==filtro_oficina]
-        if filtro_status != "Todos": df_view = df_view[df_view['status'].astype(str)==filtro_status]
-        if busca: df_view = df_view[df_view.astype(str).apply(lambda x: x.str.contains(busca, case=False, na=False)).any(axis=1)]
+        if busca:
+            df_view = df_view[df_view.astype(str).apply(lambda x: x.str.contains(busca, case=False, na=False)).any(axis=1)]
         df_view['tempo_parado_atual'] = df_view['data_entrada'].apply(calc_tempo)
         st.dataframe(df_view, use_container_width=True, height=500)
         st.download_button("📥 Baixar CSV", df_view.to_csv(index=False).encode('utf-8'), "ordens.csv", "text/csv")
 
 with tab3:
     if not df.empty:
-        c1,c2 = st.columns(2)
-        if 'tipo_equipamento' in df.columns: c1.bar_chart(df['tipo_equipamento'].value_counts())
-        if 'nome_oficina' in df.columns: c2.bar_chart(df['nome_oficina'].value_counts())
+        st.bar_chart(df['tipo_equipamento'].value_counts() if 'tipo_equipamento' in df.columns else pd.Series())
+        st.bar_chart(df['nome_oficina'].value_counts() if 'nome_oficina' in df.columns else pd.Series())
